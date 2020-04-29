@@ -7,9 +7,9 @@ using namespace std;
 # include "ConsoleEngine.h"
 
 ConsoleEngine::ConsoleEngine()
-	:screen(new wchar_t[m_screen_width * m_screen_height]), bytes_written(0)
+	:m_screen(new wchar_t[m_screen_width * m_screen_height + 10000]), bytes_written(0)
 {
-	buffer = CreateConsoleScreenBuffer(
+	m_buffer = CreateConsoleScreenBuffer(
 		GENERIC_READ | GENERIC_WRITE,
 		0,
 		NULL,
@@ -20,12 +20,19 @@ ConsoleEngine::ConsoleEngine()
 
 void ConsoleEngine::updateFrame(float dt)
 {
-	swprintf_s(screen, 100, L"X=%3.2f, Y=%3.2f, Z=%3.2f, T=%3.2f, A=%3.2f FPS=%3.2f ", m_playerX, m_playerY, m_playerZ, m_player_theta, m_player_azumith, 1.0f / dt);
+	//swprintf_s(m_screen, 600, L"X=%3.2f, Y=%3.2f, Z=%3.2f, T=%3.2f, A=%3.2f FPS=%3.2f ", m_playerX, m_playerY, m_playerZ, m_player_theta, m_player_azumith, 1.0f / dt);
+	
+	for (int nx = 0; nx < m_map_width; nx++)
+		for (int ny = 0; ny < m_map_height; ny++)
+		{
+			m_screen[(ny + 1) * m_screen_width + nx] = m_map[ny * m_map_width + nx];
+		}
+	m_screen[((int) m_playerX + 1) * m_screen_width + (int) m_playerY] = 'P';
 
-	screen[m_screen_width * m_screen_height - 1] = '\0';
+	m_screen[m_screen_width * m_screen_height - 1] = '\0';
 	WriteConsoleOutputCharacter(
-		buffer,
-		screen,
+		m_buffer,
+		m_screen,
 		m_screen_width * m_screen_height,
 		{ 0, 0 },
 		&bytes_written
@@ -38,14 +45,14 @@ void ConsoleEngine::createWindow(short width, short height)
 	m_screen_height = height;
 
 	COORD screen_coords = { width, height };
-	if (!SetConsoleScreenBufferSize(buffer, screen_coords))
+	if (!SetConsoleScreenBufferSize(m_buffer, screen_coords))
 		throw std::runtime_error("Unable to set Console Screen Buffer size.");
 
-	if (!SetConsoleActiveScreenBuffer(buffer))
+	if (!SetConsoleActiveScreenBuffer(m_buffer))
 		throw std::runtime_error("Unable to set Console Screen Buffer as Active.");
 
 	SMALL_RECT screen_rect = { 0, 0, width - 1, height - 1 };
-	if (!SetConsoleWindowInfo(buffer, TRUE, &screen_rect))
+	if (!SetConsoleWindowInfo(m_buffer, TRUE, &screen_rect))
 		throw std::runtime_error("Unable to resize Console Window.");
 }
 

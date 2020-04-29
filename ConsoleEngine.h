@@ -6,10 +6,12 @@ private:
 protected:
 	ConsoleEngine();
 
-	HANDLE buffer;
-	wchar_t* screen;
+	HANDLE m_buffer;
+	wchar_t* m_screen;
 
 	wstring m_map;
+
+	//vector<unsigned int> m_intmap;
 
 	DWORD bytes_written;
 
@@ -21,7 +23,7 @@ protected:
 
 	float m_playerX = 14.0f;
 	float m_playerY = 7.0f;
-	float m_playerZ = 5.0f;
+	float m_playerZ = 2.0f;
 	float m_player_theta = 0.0f;
 	float m_player_azumith = 0.0f;	
 	float m_player_max_speed = 5.0f;
