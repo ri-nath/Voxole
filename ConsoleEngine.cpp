@@ -6,8 +6,11 @@ using namespace std;
 # include <Windows.h>
 # include "ConsoleEngine.h"
 
-ConsoleEngine::ConsoleEngine()
-	:m_screen(new wchar_t[m_screen_width * m_screen_height + 10000]), bytes_written(0)
+ConsoleEngine::ConsoleEngine(int screen_width, int screen_height)
+	:m_screen(new wchar_t[m_screen_width * m_screen_height + 100000]), 
+	bytes_written(0),
+	m_screen_width(screen_width), 
+	m_screen_height(screen_height)
 {
 	m_buffer = CreateConsoleScreenBuffer(
 		GENERIC_READ | GENERIC_WRITE,
@@ -20,7 +23,7 @@ ConsoleEngine::ConsoleEngine()
 
 void ConsoleEngine::updateFrame(float dt)
 {
-	//swprintf_s(m_screen, m_screen_width * m_screen_height + 10000, L"X=%3.2f, Y=%3.2f, Z=%3.2f, T=%3.2f, A=%3.2f FPS=%3.2f ", m_playerX, m_playerY, m_playerZ, m_player_theta, m_player_azumith, 1.0f / dt);
+	swprintf_s(m_screen, 60, L"FPS=%3.2f ", m_player_azumith, 1.0f / dt);
 	
 	for (int nx = 0; nx < m_map_width; nx++)
 		for (int ny = 0; ny < m_map_height; ny++)
@@ -39,19 +42,28 @@ void ConsoleEngine::updateFrame(float dt)
 	);
 }
 
-void ConsoleEngine::createWindow(short width, short height)
+void ConsoleEngine::createWindow(int font_width, int font_height)
 {
-	m_screen_width = width;
-	m_screen_height = height;
-
-	COORD screen_coords = { width, height };
+	COORD screen_coords = { m_screen_width, m_screen_height };
 	if (!SetConsoleScreenBufferSize(m_buffer, screen_coords))
 		throw std::runtime_error("Unable to set Console Screen Buffer size.");
 
 	if (!SetConsoleActiveScreenBuffer(m_buffer))
 		throw std::runtime_error("Unable to set Console Screen Buffer as Active.");
 
-	SMALL_RECT screen_rect = { 0, 0, width - 1, height - 1 };
+	CONSOLE_FONT_INFOEX cfi;
+	cfi.cbSize = sizeof(cfi);
+	cfi.nFont = 0;
+	cfi.dwFontSize.X = font_width;
+	cfi.dwFontSize.Y = font_height;
+	cfi.FontFamily = FF_DONTCARE;
+	cfi.FontWeight = FW_NORMAL;
+
+	wcscpy_s(cfi.FaceName, L"Consolas");
+	if (!SetCurrentConsoleFontEx(m_buffer, false, &cfi))
+		throw std::runtime_error("Unable to set Console font.");
+
+	SMALL_RECT screen_rect = { 0, 0, m_screen_width - 1, m_screen_height - 1 };
 	if (!SetConsoleWindowInfo(m_buffer, TRUE, &screen_rect))
 		throw std::runtime_error("Unable to resize Console Window.");
 }
