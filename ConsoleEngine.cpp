@@ -7,11 +7,12 @@ using namespace std;
 # include "ConsoleEngine.h"
 
 ConsoleEngine::ConsoleEngine(int screen_width, int screen_height)
-	:m_screen(new wchar_t[m_screen_width * m_screen_height + 100000]), 
-	bytes_written(0),
-	m_screen_width(screen_width), 
+	:m_screen_width(screen_width), 
 	m_screen_height(screen_height)
 {
+	m_screen = new CHAR_INFO[m_screen_width * m_screen_height];
+	memset(m_screen, 0, sizeof(CHAR_INFO) * m_screen_width * m_screen_height);
+
 	m_buffer = CreateConsoleScreenBuffer(
 		GENERIC_READ | GENERIC_WRITE,
 		0,
@@ -22,23 +23,21 @@ ConsoleEngine::ConsoleEngine(int screen_width, int screen_height)
 }
 
 void ConsoleEngine::updateFrame(float dt)
-{
-	swprintf_s(m_screen, 60, L"FPS=%3.2f ", m_player_azumith, 1.0f / dt);
-	
+{	
 	for (int nx = 0; nx < m_map_width; nx++)
 		for (int ny = 0; ny < m_map_height; ny++)
 		{
-			m_screen[(ny + 1) * m_screen_width + nx] = (wchar_t) (L'0' + m_heightmap[ny * m_map_width + nx]);
+			drawPixel(ny + 1, nx, L'0' + m_heightmap[ny * m_map_width + nx]);
 		}
-	m_screen[((int) m_playerX + 1) * m_screen_width + (int) m_playerY] = 'P';
+	drawPixel(m_playerY, (m_playerX + 1) * m_screen_width, 'P');
+	drawPixel(m_screen_width, m_screen_height - 1, 'P');
 
-	m_screen[m_screen_width * m_screen_height - 1] = '\0';
-	WriteConsoleOutputCharacter(
+	WriteConsoleOutput(
 		m_buffer,
 		m_screen,
-		m_screen_width * m_screen_height,
+		{ m_screen_width, m_screen_height },
 		{ 0, 0 },
-		&bytes_written
+		& m_rect_window
 	);
 }
 
@@ -63,8 +62,8 @@ void ConsoleEngine::createWindow(int font_width, int font_height)
 	if (!SetCurrentConsoleFontEx(m_buffer, false, &cfi))
 		throw std::runtime_error("Unable to set Console font.");
 
-	SMALL_RECT screen_rect = { 0, 0, m_screen_width - 1, m_screen_height - 1 };
-	if (!SetConsoleWindowInfo(m_buffer, TRUE, &screen_rect))
+	m_rect_window = { 0, 0, m_screen_width - 1, m_screen_height - 1 };
+	if (!SetConsoleWindowInfo(m_buffer, TRUE, &m_rect_window))
 		throw std::runtime_error("Unable to resize Console Window.");
 }
 
@@ -83,6 +82,15 @@ void ConsoleEngine::start()
 
 		onTick(dt);
 		updateFrame(dt);
+	}
+}
+
+void ConsoleEngine::drawPixel(short x, short y, short ch, short col) 
+{
+	if (x >= 0 && x < m_screen_width && y >= 0 && y < m_screen_height)
+	{
+		m_screen[y * m_screen_width + x].Char.UnicodeChar = ch;
+		m_screen[y * m_screen_width + x].Attributes = col;
 	}
 }
 

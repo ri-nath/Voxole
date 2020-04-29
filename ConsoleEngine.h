@@ -8,12 +8,13 @@ private:
 protected:
 	ConsoleEngine(int screen_width, int screen_height);
 
+	void drawPixel(short x, short y, short c = 0x2588, short col = 0x00F);
+
 	HANDLE m_buffer;
-	wchar_t* m_screen;
+	CHAR_INFO *m_screen;
+	SMALL_RECT m_rect_window;
 
 	vector<unsigned int> m_heightmap;
-
-	DWORD bytes_written;
 
 	short m_screen_width = 360;
 	short m_screen_height = 160;

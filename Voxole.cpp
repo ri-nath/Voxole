@@ -12,6 +12,24 @@ using namespace std;
 
 enum HitType { Floor, Wall, Void, None };
 
+bool inBounds(float bound, float val) 
+{
+	return (-1.0f * bound < val && bound > val);
+}
+
+float dist(float x1, float y1, float x2, float y2) 
+{
+	float res = sqrtf((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+	if (res < 0) 
+	{
+		return res * -1.0f;
+	}
+	else 
+	{
+		return res;
+	}
+}
+
 class Voxole : public ConsoleEngine
 {
 public:
@@ -97,6 +115,8 @@ public:
 
 				HitType hit = None;
 
+				boolean boundary = false;
+
 				float unit_i = sinf(ray_angle);
 				float unit_j = cosf(ray_angle);
 				float unit_k = sinf(ray_azumith);
@@ -104,8 +124,8 @@ public:
 				while (hit == None && dist_to_wall < m_render_dist)
 				{
 					dist_to_wall += step_size;
-					int nTestX = (int)(m_playerX + unit_i * dist_to_wall);
-					int nTestY = (int)(m_playerY + unit_j * dist_to_wall);
+					float nTestX = m_playerX + unit_i * dist_to_wall;
+					float nTestY = m_playerY + unit_j * dist_to_wall;
 					float nTestZ = m_playerZ + m_player_height + unit_k * dist_to_wall;
 
 					if (nTestX < 0 || nTestX >= m_map_width || nTestY < 0 || nTestY >= m_map_height || nTestZ < -1 || nTestZ > 9)
@@ -115,18 +135,32 @@ public:
 					}
 					else
 					{
-						int curr_cell_height = m_heightmap[nTestX * m_map_width + nTestY];
+						int curr_cell_height = m_heightmap[((int) nTestX) * m_map_width + ((int) nTestY)];
 
 						if (nTestZ <= curr_cell_height) 
 						{
 							float bound = 0.1f;
 							float dz = curr_cell_height - nTestZ;
-							if (-1.0f * bound < dz && bound > dz)
+							if (inBounds(bound, dz))
 							{
 								hit = Floor;
 							}
 							else 
 							{
+								bound = 0.08f;
+
+								float dx = nTestX - (int)nTestX;
+								float dy = nTestY - (int)nTestY;
+								float d2x = nTestX - (int)(nTestX + 1);
+								float d2y = nTestY - (int)(nTestY + 1);
+								float d2z = nTestZ - (int)nTestZ;
+								float d3z = nTestZ - (int)(nTestZ + 1);
+								boundary = (inBounds(bound, dx) && inBounds(bound, dy))
+									|| (inBounds(bound, dx) && inBounds(bound, d2y))
+									|| (inBounds(bound, d2x) && inBounds(bound, dy))
+									|| (inBounds(bound, d2x) && inBounds(bound, d2y))
+									|| (inBounds(bound, d2z));
+
 								hit = Wall;
 							}
 						}
@@ -134,27 +168,35 @@ public:
 					}
 				}
 
-				short nShade = ' ';
+				short shade = ' ';
+				short col = 0x000F;
+
+				dist_to_wall += dist(x, y, m_screen_width / 2.0f, m_screen_height / 2.0f) / 50.0f;
 
 				if (hit == Wall) {
-					if (dist_to_wall <= m_render_dist / 4.0f)			nShade = 0x2588;
-					else if (dist_to_wall < m_render_dist / 3.0f)		nShade = 0x2593;
-					else if (dist_to_wall < m_render_dist / 2.0f)		nShade = 0x2592;
-					else if (dist_to_wall < m_render_dist)				nShade = 0x2591;
+					if (dist_to_wall <= m_render_dist / 4.0f)			shade = 0x2588;
+					else if (dist_to_wall < m_render_dist / 3.0f)		shade = 0x2593;
+					else if (dist_to_wall < m_render_dist / 2.0f)		shade = 0x2592;
+					else if (dist_to_wall < m_render_dist)				shade = 0x2591;
+
+					if (boundary) col = 0x000C;
 				}
 				else if (hit == Floor)
 				{
-					if (dist_to_wall <= m_render_dist / 4.0f)			nShade = '#';
-					else if (dist_to_wall < m_render_dist / 3.0f)		nShade = 'x';
-					else if (dist_to_wall < m_render_dist / 2.0f)		nShade = '.';
-					else if (dist_to_wall < m_render_dist)				nShade = '-';
+					if (dist_to_wall <= m_render_dist / 3.0f)			shade = 0x2588;
+					else if (dist_to_wall < m_render_dist / 2.0f)		shade = 0x2593;
+					else if (dist_to_wall < m_render_dist / 1.5f)		shade = 0x2592;
+					else if (dist_to_wall < m_render_dist)				shade = 0x2591;
+
+					col = 0x0001;
 				}
 
-				m_screen[y * m_screen_width + x] = nShade;
+				drawPixel(x, y, shade, col);
 			}
 		}
 	}
 };
+
 
 int main()
 {
