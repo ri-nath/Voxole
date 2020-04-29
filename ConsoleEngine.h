@@ -1,3 +1,5 @@
+# include <vector>
+
 class ConsoleEngine
 {
 private:
@@ -9,9 +11,7 @@ protected:
 	HANDLE m_buffer;
 	wchar_t* m_screen;
 
-	wstring m_map;
-
-	//vector<unsigned int> m_intmap;
+	vector<unsigned int> m_heightmap;
 
 	DWORD bytes_written;
 
@@ -23,7 +23,8 @@ protected:
 
 	float m_playerX = 14.0f;
 	float m_playerY = 7.0f;
-	float m_playerZ = 2.0f;
+	float m_playerZ = 0.0f;
+	float m_player_height = 2.0f;
 	float m_player_theta = 0.0f;
 	float m_player_azumith = 0.0f;	
 	float m_player_max_speed = 5.0f;

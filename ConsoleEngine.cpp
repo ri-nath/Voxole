@@ -1,9 +1,9 @@
 # include <stdexcept>
 # include <chrono>
+#include <string>
 using namespace std;
 
 # include <Windows.h>
-
 # include "ConsoleEngine.h"
 
 ConsoleEngine::ConsoleEngine()
@@ -20,12 +20,12 @@ ConsoleEngine::ConsoleEngine()
 
 void ConsoleEngine::updateFrame(float dt)
 {
-	//swprintf_s(m_screen, 600, L"X=%3.2f, Y=%3.2f, Z=%3.2f, T=%3.2f, A=%3.2f FPS=%3.2f ", m_playerX, m_playerY, m_playerZ, m_player_theta, m_player_azumith, 1.0f / dt);
+	//swprintf_s(m_screen, m_screen_width * m_screen_height + 10000, L"X=%3.2f, Y=%3.2f, Z=%3.2f, T=%3.2f, A=%3.2f FPS=%3.2f ", m_playerX, m_playerY, m_playerZ, m_player_theta, m_player_azumith, 1.0f / dt);
 	
 	for (int nx = 0; nx < m_map_width; nx++)
 		for (int ny = 0; ny < m_map_height; ny++)
 		{
-			m_screen[(ny + 1) * m_screen_width + nx] = m_map[ny * m_map_width + nx];
+			m_screen[(ny + 1) * m_screen_width + nx] = (wchar_t) (L'0' + m_heightmap[ny * m_map_width + nx]);
 		}
 	m_screen[((int) m_playerX + 1) * m_screen_width + (int) m_playerY] = 'P';
 

@@ -1,70 +1,3 @@
-/*
-	OneLoneCoder.com - Command Line First Person Shooter (FPS) Engine
-	"Why were games not done like this is 1990?" - @Javidx9
-
-	License
-	~~~~~~~
-	Copyright (C) 2018  Javidx9
-	This program comes with ABSOLUTELY NO WARRANTY.
-	This is free software, and you are welcome to redistribute it
-	under certain conditions; See license for details.
-	Original works located at:
-	https://www.github.com/onelonecoder
-	https://www.onelonecoder.com
-	https://www.youtube.com/javidx9
-
-	GNU GPLv3
-	https://github.com/OneLoneCoder/videos/blob/master/LICENSE
-
-	From Javidx9 :)
-	~~~~~~~~~~~~~~~
-	Hello! Ultimately I don't care what you use this for. It's intended to be
-	educational, and perhaps to the oddly minded - a little bit of fun.
-	Please hack this, change it and use it in any way you see fit. You acknowledge
-	that I am not responsible for anything bad that happens as a result of
-	your actions. However this code is protected by GNU GPLv3, see the license in the
-	github repo. This means you must attribute me if you use it. You can view this
-	license here: https://github.com/OneLoneCoder/videos/blob/master/LICENSE
-	Cheers!
-
-	Background
-	~~~~~~~~~~
-	Whilst waiting for TheMexicanRunner to start the finale of his NesMania project,
-	his Twitch stream had a counter counting down for a couple of hours until it started.
-	With some time on my hands, I thought it might be fun to see what the graphical
-	capabilities of the console are. Turns out, not very much, but hey, it's nice to think
-	Wolfenstein could have existed a few years earlier, and in just ~200 lines of code.
-
-	IMPORTANT!!!!
-	~~~~~~~~~~~~~
-	READ ME BEFORE RUNNING!!! This program expects the console dimensions to be set to
-	120 Columns by 40 Rows. I recommend a small font "Consolas" at size 16. You can do this
-	by running the program, and right clicking on the console title bar, and specifying
-	the properties. You can also choose to default to them in the future.
-
-	Controls: A = Turn Left, D = Turn Right, W = Walk Forwards, S = Walk Backwards
-
-	Future Modifications
-	~~~~~~~~~~~~~~~~~~~~
-	1) Shade block segments based on angle from player, i.e. less light reflected off
-	walls at side of player. Walls straight on are brightest.
-	2) Find an interesting and optimised ray-tracing method. I'm sure one must exist
-	to more optimally search the map space
-	3) Add bullets!
-	4) Add bad guys!
-
-	Author
-	~~~~~~
-	Twitter: @javidx9
-	Blog: www.onelonecoder.com
-
-	Video:
-	~~~~~~
-	https://youtu.be/xW8skO7MFYw
-
-	Last Updated: 27/02/2017
-*/
-
 #include <iostream>
 #include <vector>
 #include <utility>
@@ -84,67 +17,63 @@ class Voxole : public ConsoleEngine
 public:
 	Voxole()
 	{
-		m_map += L"#########.......";
-		m_map += L"#...............";
-		m_map += L"#.......########";
-		m_map += L"#..............#";
-		m_map += L"#......##......#";
-		m_map += L"#......##......#";
-		m_map += L"#..............#";
-		m_map += L"###............#";
-		m_map += L"##.............#";
-		m_map += L"#......####..###";
-		m_map += L"#......#.......#";
-		m_map += L"#......#.......#";
-		m_map += L"#..............#";
-		m_map += L"#......#########";
-		m_map += L"#..............#";
-		m_map += L"################";
-
-		/*m_intmap = {
-			0,1,2,3,4,5,6,7,8,9,
-			11,12,1,3
-
-
-		}*/
+		m_heightmap = {
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,1,2,3,4,5,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+		};
 	}
 
 public:
 	virtual void onTick(float dt) {
-		if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
-			m_playerZ -= (m_player_max_speed) * dt;
+		if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
+			m_playerZ -= (m_player_max_speed)*dt;
+		}
 
 		if (GetAsyncKeyState(VK_SPACE) & 0x8000)
 			m_playerZ += (m_player_max_speed) * dt;
 
 		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
-			m_player_theta -= (m_player_max_speed * 0.75f) * dt;
+			m_player_theta -= (m_player_max_speed * 0.15f) * dt;
 
 		// Handle CW Rotation
 		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
-			m_player_theta += (m_player_max_speed * 0.75f) * dt;
+			m_player_theta += (m_player_max_speed * 0.15f) * dt;
 
 		// Handle Forwards movement & collision
 		if (GetAsyncKeyState((unsigned short)'W') & 0x8000)
 		{
-			m_playerX += sinf(m_player_theta) * m_player_max_speed * dt;;
-			m_playerY += cosf(m_player_theta) * m_player_max_speed * dt;;
-			if (m_map.c_str()[(int)m_playerX * m_map_width + (int)m_playerY] == '#')
+			m_playerX += sinf(m_player_theta) * m_player_max_speed * dt;
+			m_playerY += cosf(m_player_theta) * m_player_max_speed * dt;
+			if (m_heightmap[(int)m_playerX * m_map_width + (int)m_playerY] > m_playerZ)
 			{
-				m_playerX -= sinf(m_player_theta) * m_player_max_speed * dt;;
-				m_playerY -= cosf(m_player_theta) * m_player_max_speed * dt;;
+				m_playerX -= sinf(m_player_theta) * m_player_max_speed * dt;
+				m_playerY -= cosf(m_player_theta) * m_player_max_speed * dt;
 			}
 		}
 
 		// Handle backwards movement & collision
 		if (GetAsyncKeyState((unsigned short)'S') & 0x8000)
 		{
-			m_playerX -= sinf(m_player_theta) * m_player_max_speed * dt;;
-			m_playerY -= cosf(m_player_theta) * m_player_max_speed * dt;;
-			if (m_map.c_str()[(int)m_playerX * m_map_width + (int)m_playerY] == '#')
+			m_playerX -= sinf(m_player_theta) * m_player_max_speed * dt;
+			m_playerY -= cosf(m_player_theta) * m_player_max_speed * dt;
+			if (m_heightmap[(int)m_playerX * m_map_width + (int)m_playerY] == 1)
 			{
-				m_playerX += sinf(m_player_theta) * m_player_max_speed * dt;;
-				m_playerY += cosf(m_player_theta) * m_player_max_speed * dt;;
+				m_playerX += sinf(m_player_theta) * m_player_max_speed * dt;
+				m_playerY += cosf(m_player_theta) * m_player_max_speed * dt;
 			}
 		}
 
@@ -172,7 +101,7 @@ public:
 					dist_to_wall += step_size;
 					int nTestX = (int)(m_playerX + unit_i * dist_to_wall);
 					int nTestY = (int)(m_playerY + unit_j * dist_to_wall);
-					int nTestZ = (int)(m_playerZ + unit_k * dist_to_wall);
+					float nTestZ = m_playerZ + m_player_height + unit_k * dist_to_wall;
 
 					// Test if ray is out of bounds
 					if (nTestX < 0 || nTestX >= m_map_width || nTestY < 0 || nTestY >= m_map_height)
@@ -182,23 +111,23 @@ public:
 					}
 					else
 					{
-						// Ray is inbounds so test to see if the ray cell is a wall block
-						if (m_map.c_str()[nTestX * m_map_width + nTestY] == '#' || nTestZ <= 0)
+						int curr_cell_height = m_heightmap[nTestX * m_map_width + nTestY];
+
+
+						if (nTestZ <= curr_cell_height) 
 						{
-							// Ray has hit wall
-							if (nTestZ <= 0) {
+							float bound = 0000.1f;
+							float dz = curr_cell_height - nTestZ;
+							if (-1.0f * bound < dz && bound > dz)
+							{
 								hit = Floor;
 							}
-							else {
+							else 
+							{
 								hit = Wall;
-
 							}
-								// To highlight tile boundaries, cast a ray from each corner
-								// of the tile, to the player. The more coincident this ray
-								// is to the rendering ray, the closer we are to a tile 
-								// boundary, which we'll shade to add detail to the walls
+						}
 
-						};
 					}
 				}
 
