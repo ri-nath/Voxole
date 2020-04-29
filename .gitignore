@@ -2,3 +2,6 @@
 .idea 
 Debug 
 *.vxcproj 
+*.sln 
+*.vcxproj 
+*.vcxproj.* 
