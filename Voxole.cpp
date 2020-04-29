@@ -10,7 +10,7 @@ using namespace std;
 
 #include "ConsoleEngine.h"
 
-enum HitType { Floor, Wall, None };
+enum HitType { Floor, Wall, Void, None };
 
 class Voxole : public ConsoleEngine
 {
@@ -22,14 +22,14 @@ public:
 			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-			1,0,0,0,0,1,2,3,4,5,0,0,0,0,0,1,
-			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,1,2,3,4,5,6,7,8,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,9,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,8,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,7,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,6,0,0,1,
+			1,0,0,0,0,0,0,0,0,0,0,0,5,0,0,1,
+			1,0,0,0,0,0,5,0,0,0,0,0,0,0,0,1,
+			1,0,0,0,0,4,0,0,6,0,0,0,0,0,0,1,
 			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 			1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
@@ -108,9 +108,9 @@ public:
 					int nTestY = (int)(m_playerY + unit_j * dist_to_wall);
 					float nTestZ = m_playerZ + m_player_height + unit_k * dist_to_wall;
 
-					if (nTestX < 0 || nTestX >= m_map_width || nTestY < 0 || nTestY >= m_map_height)
+					if (nTestX < 0 || nTestX >= m_map_width || nTestY < 0 || nTestY >= m_map_height || nTestZ < -1 || nTestZ > 9)
 					{
-						hit = Wall;		
+						hit = Void;		
 						dist_to_wall = m_render_dist;
 					}
 					else
@@ -133,7 +133,6 @@ public:
 
 					}
 				}
-
 
 				short nShade = ' ';
 
@@ -159,7 +158,7 @@ public:
 
 int main()
 {
-	Voxole game(180, 80);
+	Voxole game(180, 120);
 	game.createWindow(4, 4);
 	game.start();
 	return 0;
