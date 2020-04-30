@@ -30,6 +30,8 @@ protected:
 	float m_player_azumith = 0.0f;	
 	float m_player_max_speed = 5.0f;
 
+	float m_clickable_dist = 6.0f;
+
 	float m_hfov = 3.14159f / 3.0f;
 	float m_vfov = 3.14159f / 4.0f; // Figure this out
 	float m_render_dist = 12.0f;

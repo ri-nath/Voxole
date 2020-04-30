@@ -58,6 +58,47 @@ public:
 
 public:
 	virtual void onTick(float dt) {
+		float step_size = 0.1f;
+
+		float c_dist_to_wall = 0.0f;
+
+		float c_unit_i = sinf(m_player_theta);
+		float c_unit_j = cosf(m_player_theta);
+		float c_unit_k = sinf(m_player_azumith);
+
+		int selectedX = NULL;
+		int selectedY = NULL;
+		bool selected = false;
+
+		while (!selected && c_dist_to_wall < m_clickable_dist)
+		{
+			c_dist_to_wall += step_size;
+			float nTestX = m_playerX + c_unit_i * c_dist_to_wall;
+			float nTestY = m_playerY + c_unit_j * c_dist_to_wall;
+			float nTestZ = m_playerZ + m_player_height + c_unit_k * c_dist_to_wall;
+
+			int curr_cell_height = m_heightmap[((int)nTestX) * m_map_width + ((int)nTestY)];
+
+			if (nTestZ <= curr_cell_height)
+			{
+				selectedX = (int)nTestX;
+				selectedY = (int)nTestY;
+				selected = true;
+			}
+		}
+
+		if (GetAsyncKeyState((unsigned short)'B') & 0x8000) {
+			if (selected) {
+				m_heightmap[selectedX * m_map_width + selectedY] = m_heightmap[selectedX * m_map_width + selectedY] + 1;
+			}
+		}
+
+		if (GetAsyncKeyState((unsigned short)'V') & 0x8000) {
+			if (selected) {
+				m_heightmap[selectedX * m_map_width + selectedY] = m_heightmap[selectedX * m_map_width + selectedY] - 1;
+			}
+		}
+
 		if (GetAsyncKeyState((unsigned short)'Z') & 0x8000)
 			m_player_azumith += (m_player_max_speed * 0.30f) * dt;
 
@@ -111,11 +152,12 @@ public:
 				float ray_azumith = (m_player_azumith - m_vfov / 2.0f) + (((float)m_screen_height - y) / (float)m_screen_height) * m_vfov;
 				
 				float dist_to_wall = 0.0f; 
-				float step_size = 0.1f;
+				
 
 				HitType hit = None;
 
-				boolean boundary = false;
+				bool boundary = false;
+				bool selected_boundary = false;
 
 				float unit_i = sinf(ray_angle);
 				float unit_j = cosf(ray_angle);
@@ -141,26 +183,27 @@ public:
 						{
 							float bound = 0.1f;
 							float dz = curr_cell_height - nTestZ;
+
+							float dx = nTestX - (int)nTestX;
+							float dy = nTestY - (int)nTestY;
+							float d2x = nTestX - (int)(nTestX + 1);
+							float d2y = nTestY - (int)(nTestY + 1);
+							float d2z = nTestZ - (int)nTestZ;
+							float d3z = nTestZ - (int)(nTestZ + 1);
+							boundary = (inBounds(bound, dx) && inBounds(bound, dy))
+								|| (inBounds(bound, dx) && inBounds(bound, d2y))
+								|| (inBounds(bound, d2x) && inBounds(bound, dy))
+								|| (inBounds(bound, d2x) && inBounds(bound, d2y))
+								|| (inBounds(bound, d2z));
+
+							selected_boundary = ((int)nTestX == selectedX && (int)nTestY == selectedY);
+
 							if (inBounds(bound, dz))
 							{
 								hit = Floor;
 							}
 							else 
 							{
-								bound = 0.08f;
-
-								float dx = nTestX - (int)nTestX;
-								float dy = nTestY - (int)nTestY;
-								float d2x = nTestX - (int)(nTestX + 1);
-								float d2y = nTestY - (int)(nTestY + 1);
-								float d2z = nTestZ - (int)nTestZ;
-								float d3z = nTestZ - (int)(nTestZ + 1);
-								boundary = (inBounds(bound, dx) && inBounds(bound, dy))
-									|| (inBounds(bound, dx) && inBounds(bound, d2y))
-									|| (inBounds(bound, d2x) && inBounds(bound, dy))
-									|| (inBounds(bound, d2x) && inBounds(bound, d2y))
-									|| (inBounds(bound, d2z));
-
 								hit = Wall;
 							}
 						}
@@ -174,21 +217,37 @@ public:
 				dist_to_wall += dist(x, y, m_screen_width / 2.0f, m_screen_height / 2.0f) / 50.0f;
 
 				if (hit == Wall) {
-					if (dist_to_wall <= m_render_dist / 4.0f)			shade = 0x2588;
-					else if (dist_to_wall < m_render_dist / 3.0f)		shade = 0x2593;
-					else if (dist_to_wall < m_render_dist / 2.0f)		shade = 0x2592;
-					else if (dist_to_wall < m_render_dist)				shade = 0x2591;
+					if (boundary) {
+						if (selected_boundary) {
+							shade = 0x2588;
+							col = 0x000F;
+						}
+						else 
+						{
+							if (dist_to_wall <= m_render_dist / 4.0f)			shade = 0x2588;
+							else if (dist_to_wall < m_render_dist / 3.0f)		shade = 0x2593;
+							else if (dist_to_wall < m_render_dist / 2.0f)		shade = 0x2592;
+							else if (dist_to_wall < m_render_dist)				shade = 0x2591;
 
-					if (boundary) col = 0x000C;
+							col = 0x000C;
+						}
+					}
 				}
 				else if (hit == Floor)
 				{
-					if (dist_to_wall <= m_render_dist / 3.0f)			shade = 0x2588;
-					else if (dist_to_wall < m_render_dist / 2.0f)		shade = 0x2593;
-					else if (dist_to_wall < m_render_dist / 1.5f)		shade = 0x2592;
-					else if (dist_to_wall < m_render_dist)				shade = 0x2591;
+					if (selected_boundary) {
+						shade = 0x2588;
+						col = 0x000F;
+					}
+					else 
+					{
+						if (dist_to_wall <= m_render_dist / 3.0f)			shade = 0x2588;
+						else if (dist_to_wall < m_render_dist / 2.0f)		shade = 0x2593;
+						else if (dist_to_wall < m_render_dist / 1.5f)		shade = 0x2592;
+						else if (dist_to_wall < m_render_dist)				shade = 0x2591;
 
-					col = 0x0001;
+						col = 0x0001;
+					}
 				}
 
 				drawPixel(x, y, shade, col);
