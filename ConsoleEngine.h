@@ -24,7 +24,7 @@ protected:
 
 	float m_playerX = 14.0f;
 	float m_playerY = 7.0f;
-	float m_playerZ = 0.0f;
+	float m_playerZ = 2.0f;
 	float m_player_height = 2.0f;
 	float m_player_theta = 0.0f;
 	float m_player_azumith = 0.0f;	

@@ -7,8 +7,9 @@ using namespace std;
 # include "ConsoleEngine.h"
 
 ConsoleEngine::ConsoleEngine(int screen_width, int screen_height)
-	:m_screen_width(screen_width), 
-	m_screen_height(screen_height)
+	: m_screen_width(screen_width), 
+	  m_screen_height(screen_height),
+	  m_heightmap(screen_width * screen_height, 2)
 {
 	m_screen = new CHAR_INFO[m_screen_width * m_screen_height];
 	memset(m_screen, 0, sizeof(CHAR_INFO) * m_screen_width * m_screen_height);
