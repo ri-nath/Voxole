@@ -4,12 +4,12 @@
 using namespace std;
 
 # include <Windows.h>
-# include "ConsoleEngine.h"
 
-ConsoleEngine::ConsoleEngine(int screen_width, int screen_height)
+# include "ConsoleGame.h"
+
+ConsoleGame::ConsoleGame(short screen_width, short screen_height)
 	: m_screen_width(screen_width), 
-	  m_screen_height(screen_height),
-	  m_heightmap(screen_width * screen_height, 2)
+	  m_screen_height(screen_height)
 {
 	m_screen = new CHAR_INFO[m_screen_width * m_screen_height];
 	memset(m_screen, 0, sizeof(CHAR_INFO) * m_screen_width * m_screen_height);
@@ -23,15 +23,11 @@ ConsoleEngine::ConsoleEngine(int screen_width, int screen_height)
 	);
 }
 
-void ConsoleEngine::updateFrame(float dt)
+void ConsoleGame::updateFrame(float dt)
 {	
-	for (int nx = 0; nx < m_map_width; nx++)
-		for (int ny = 0; ny < m_map_height; ny++)
-		{
-			drawPixel(ny + 1, nx, L'0' + m_heightmap[ny * m_map_width + nx]);
-		}
-	drawPixel(m_playerY, (m_playerX + 1) * m_screen_width, 'P');
-	drawPixel(m_screen_width, m_screen_height - 1, 'P');
+	wchar_t title[256];
+	swprintf_s(title, 256, L"Console Game: FPS: %3.2f", 1.0f / dt);
+	SetConsoleTitle(title);
 
 	WriteConsoleOutput(
 		m_buffer,
@@ -42,7 +38,7 @@ void ConsoleEngine::updateFrame(float dt)
 	);
 }
 
-void ConsoleEngine::createWindow(int font_width, int font_height)
+void ConsoleGame::createWindow(int font_width, int font_height)
 {
 	COORD screen_coords = { m_screen_width, m_screen_height };
 	if (!SetConsoleScreenBufferSize(m_buffer, screen_coords))
@@ -68,7 +64,7 @@ void ConsoleEngine::createWindow(int font_width, int font_height)
 		throw std::runtime_error("Unable to resize Console Window.");
 }
 
-void ConsoleEngine::start()
+void ConsoleGame::start()
 {
 	auto time_naught = chrono::system_clock::now();
 	auto time_final = chrono::system_clock::now();
@@ -86,7 +82,7 @@ void ConsoleEngine::start()
 	}
 }
 
-void ConsoleEngine::drawPixel(short x, short y, short ch, short col) 
+void ConsoleGame::drawPixel(short x, short y, short ch, short col) 
 {
 	if (x >= 0 && x < m_screen_width && y >= 0 && y < m_screen_height)
 	{

@@ -8,7 +8,8 @@ using namespace std;
 #include <stdio.h>
 #include <Windows.h>
 
-#include "ConsoleEngine.h"
+#include "ConsoleGame.h"
+#include "MappedGame.h"
 
 enum HitType { Floor, Wall, Void, None };
 
@@ -30,23 +31,36 @@ float dist(float x1, float y1, float x2, float y2)
 	}
 }
 
-class Voxole : public ConsoleEngine
+class Voxole : public MappedGame
 {
+private:
+	float m_player_height = 2.0f;
+	float m_player_theta = 0.0f;
+	float m_player_azumith = 0.0f;
+	
+	const float m_player_max_speed = 5.0f;
+	const float m_player_max_angular_speed = 3.5f;
+
+	const float m_clickable_dist = 6.0f;
+
+	const float m_hfov = 3.14159f / 3.0f;
+	const float m_vfov = 3.14159f / 3.0f;
+	const float m_render_dist = 12.0f;
+
 public:
-	Voxole(short width, short height)
-		: ConsoleEngine(width, height)
+	Voxole(short screen_width, short screen_length, int map_width, int map_length, unsigned char initial_height)
+		: MappedGame(screen_width, screen_length, map_width, map_length, initial_height)
 	{
 	}
 
-public:
 	virtual void onTick(float dt) {
-		float step_size = 0.1f;
+		const float step_size = 0.1f;
 
 		float c_dist_to_wall = 0.0f;
 
-		float c_unit_i = sinf(m_player_theta);
-		float c_unit_j = cosf(m_player_theta);
-		float c_unit_k = sinf(m_player_azumith);
+		const float c_unit_i = sinf(m_player_theta);
+		const float c_unit_j = cosf(m_player_theta);
+		const float c_unit_k = sinf(m_player_azumith);
 
 		int selectedX = NULL;
 		int selectedY = NULL;
@@ -59,7 +73,7 @@ public:
 			float nTestY = m_playerY + c_unit_j * c_dist_to_wall;
 			float nTestZ = m_playerZ + m_player_height + c_unit_k * c_dist_to_wall;
 
-			int curr_cell_height = m_heightmap[((int)nTestX) * m_map_width + ((int)nTestY)];
+			int curr_cell_height = MappedGame::getHeight((int) nTestX, (int) nTestY);
 
 			if (nTestZ <= curr_cell_height)
 			{
@@ -71,45 +85,36 @@ public:
 
 		if (GetAsyncKeyState((unsigned short)'B') & 0x8000) {
 			if (selected) {
-				m_heightmap[selectedX * m_map_width + selectedY] = m_heightmap[selectedX * m_map_width + selectedY] + 1;
+				MappedGame::setHeight(selectedX, selectedY, MappedGame::getHeight(selectedX, selectedY) + 1);
 			}
 		}
 
 		if (GetAsyncKeyState((unsigned short)'V') & 0x8000) {
 			if (selected) {
-				m_heightmap[selectedX * m_map_width + selectedY] = m_heightmap[selectedX * m_map_width + selectedY] - 1;
+				MappedGame::setHeight(selectedX, selectedY, MappedGame::getHeight(selectedX, selectedY) - 1);
 			}
 		}
 
-		if (GetAsyncKeyState((unsigned short)'Z') & 0x8000)
-			m_player_azumith += (m_player_max_speed * 0.30f) * dt;
+		const int curr_height = getHeight(m_playerX, m_playerY);
 
-		if (GetAsyncKeyState((unsigned short)'C') & 0x8000)
-			m_player_azumith -= (m_player_max_speed * 0.30f) * dt;
+		if (GetAsyncKeyState((unsigned short)'Z') & 0x8000) m_player_azumith += m_player_max_angular_speed * 0.75f * dt;
+		if (GetAsyncKeyState((unsigned short)'C') & 0x8000) m_player_azumith -= m_player_max_angular_speed * 0.75f * dt;
 
 		if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
 			m_playerZ -= (m_player_max_speed) * dt;
-			if (m_heightmap[(int)m_playerX * m_map_width + (int)m_playerY] > m_playerZ)
+			if (curr_height > m_playerZ)
 			{
-				m_playerZ += (m_player_max_speed)  *dt;
+				m_playerZ += (m_player_max_speed) * dt;
 			}
 		}
 
-		if (GetAsyncKeyState(VK_SPACE) & 0x8000)
-			m_playerZ += (m_player_max_speed) * dt;
-
-		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
-			m_player_theta -= (m_player_max_speed * 0.30f) * dt;
-
-		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
-			m_player_theta += (m_player_max_speed * 0.30f) * dt;
-
+		if (GetAsyncKeyState(VK_SPACE) & 0x8000) m_playerZ += (m_player_max_speed) * dt;
 
 		if (GetAsyncKeyState((unsigned short)'W') & 0x8000)
 		{
 			m_playerX += sinf(m_player_theta) * m_player_max_speed * dt;
 			m_playerY += cosf(m_player_theta) * m_player_max_speed * dt;
-			if (m_heightmap[(int)m_playerX * m_map_width + (int)m_playerY] > m_playerZ)
+			if (curr_height > m_playerZ)
 			{
 				m_playerX -= sinf(m_player_theta) * m_player_max_speed * dt;
 				m_playerY -= cosf(m_player_theta) * m_player_max_speed * dt;
@@ -120,30 +125,32 @@ public:
 		{
 			m_playerX -= sinf(m_player_theta) * m_player_max_speed * dt;
 			m_playerY -= cosf(m_player_theta) * m_player_max_speed * dt;
-			if (m_heightmap[(int)m_playerX * m_map_width + (int)m_playerY] == 1)
+			if (curr_height > m_playerZ)
 			{
 				m_playerX += sinf(m_player_theta) * m_player_max_speed * dt;
 				m_playerY += cosf(m_player_theta) * m_player_max_speed * dt;
 			}
 		}
 
+		if (GetAsyncKeyState((unsigned short)'A') & 0x8000) m_player_theta -= m_player_max_angular_speed * dt;
+		if (GetAsyncKeyState((unsigned short)'D') & 0x8000) m_player_theta += m_player_max_angular_speed * dt;
+
 		for (int x = 0; x < m_screen_width; x++)
 		{
 			for (int y = 0; y < m_screen_height; y++) {
-				float ray_angle = (m_player_theta - m_hfov / 2.0f) + ((float)x / (float)m_screen_width) * m_hfov;
-				float ray_azumith = (m_player_azumith - m_vfov / 2.0f) + (((float)m_screen_height - y) / (float)m_screen_height) * m_vfov;
+				const float ray_angle = (m_player_theta - m_hfov / 2.0f) + ((float)x / (float)m_screen_width) * m_hfov;
+				const float ray_azumith = (m_player_azumith - m_vfov / 2.0f) + (((float)m_screen_height - y) / (float)m_screen_height) * m_vfov;
 				
 				float dist_to_wall = 0.0f; 
 				
-
 				HitType hit = None;
 
 				bool boundary = false;
 				bool selected_boundary = false;
 
-				float unit_i = sinf(ray_angle);
-				float unit_j = cosf(ray_angle);
-				float unit_k = sinf(ray_azumith);
+				const float unit_i = sinf(ray_angle);
+				const float unit_j = cosf(ray_angle);
+				const float unit_k = sinf(ray_azumith);
 
 				while (hit == None && dist_to_wall < m_render_dist)
 				{
@@ -152,14 +159,14 @@ public:
 					float nTestY = m_playerY + unit_j * dist_to_wall;
 					float nTestZ = m_playerZ + m_player_height + unit_k * dist_to_wall;
 
-					if (nTestX < 0 || nTestX >= m_map_width || nTestY < 0 || nTestY >= m_map_height || nTestZ < -1 || nTestZ > 9)
+					if (!MappedGame::isWithinMap(nTestX, nTestY) || nTestZ < -1 || nTestZ > 9)
 					{
 						hit = Void;		
 						dist_to_wall = m_render_dist;
 					}
 					else
 					{
-						int curr_cell_height = m_heightmap[((int) nTestX) * m_map_width + ((int) nTestY)];
+						int curr_cell_height = MappedGame::getHeight((int) nTestX, (int) nTestY);
 
 						if (nTestZ <= curr_cell_height) 
 						{
@@ -193,56 +200,58 @@ public:
 					}
 				}
 
-				short shade = ' ';
-				short col = 0x000F;
+				short symbol = PIXEL::NONE;
+				short col = COLOR::BLACK;
 
 				dist_to_wall += dist(x, y, m_screen_width / 2.0f, m_screen_height / 2.0f) / 50.0f;
 
 				if (hit == Wall) {
 					if (boundary) {
 						if (selected_boundary) {
-							shade = 0x2588;
-							col = 0x000F;
+							symbol = PIXEL::FULL;
+							col = COLOR::WHITE;
 						}
 						else 
 						{
-							if (dist_to_wall <= m_render_dist / 4.0f)			shade = 0x2588;
-							else if (dist_to_wall < m_render_dist / 3.0f)		shade = 0x2593;
-							else if (dist_to_wall < m_render_dist / 2.0f)		shade = 0x2592;
-							else if (dist_to_wall < m_render_dist)				shade = 0x2591;
+							if (dist_to_wall <= m_render_dist / 4.0f)			symbol = PIXEL::FULL;
+							else if (dist_to_wall < m_render_dist / 3.0f)		symbol = PIXEL::THREE_QUARTERS;
+							else if (dist_to_wall < m_render_dist / 2.0f)		symbol = PIXEL::HALF;
+							else if (dist_to_wall < m_render_dist)				symbol = PIXEL::QUARTER;
 
-							col = 0x000C;
+							col = COLOR::GREY;
 						}
 					}
 				}
 				else if (hit == Floor)
 				{
 					if (selected_boundary) {
-						shade = 0x2588;
-						col = 0x000F;
+						symbol = PIXEL::FULL;
+						col = COLOR::WHITE;
 					}
-					else 
+					else
 					{
-						if (dist_to_wall <= m_render_dist / 3.0f)			shade = 0x2588;
-						else if (dist_to_wall < m_render_dist / 2.0f)		shade = 0x2593;
-						else if (dist_to_wall < m_render_dist / 1.5f)		shade = 0x2592;
-						else if (dist_to_wall < m_render_dist)				shade = 0x2591;
+						if (dist_to_wall <= m_render_dist / 4.0f)			symbol = PIXEL::FULL;
+						else if (dist_to_wall < m_render_dist / 3.0f)		symbol = PIXEL::THREE_QUARTERS;
+						else if (dist_to_wall < m_render_dist / 2.0f)		symbol = PIXEL::HALF;
+						else if (dist_to_wall < m_render_dist)				symbol = PIXEL::QUARTER;
 
-						col = 0x0001;
+						col = COLOR::BLUE;
 					}
 				}
 
-				drawPixel(x, y, shade, col);
+				drawPixel(x, y, symbol, col);
 			}
 		}
+
+		MappedGame::onTick(dt);
 	}
 };
 
 
 int main()
 {
-	Voxole game(180, 120);
-	game.createWindow(4, 4);
+	Voxole game(120, 80, 16, 16, 2);
+	game.createWindow(8, 8);
 	game.start();
 	return 0;
 }
