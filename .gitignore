@@ -1,1 +1,8 @@
+.vs 
+.idea 
+Debug 
+*.vxcproj 
+*.sln 
+*.vcxproj 
+*.vcxproj.*
 enc_temp_folder 
