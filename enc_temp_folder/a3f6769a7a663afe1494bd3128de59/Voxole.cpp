@@ -155,37 +155,37 @@ public:
 				while (hit == HitType::None && dist_to_wall < m_render_dist)
 				{
 					dist_to_wall += step_size;
-					float tx = m_playerX + unit_i * dist_to_wall;
-					float ty = m_playerY + unit_j * dist_to_wall;
-					float tz = m_playerZ + m_player_height + unit_k * dist_to_wall;
+					float nTestX = m_playerX + unit_i * dist_to_wall;
+					float nTestY = m_playerY + unit_j * dist_to_wall;
+					float nTestZ = m_playerZ + m_player_height + unit_k * dist_to_wall;
 
-					if (!MappedGame::isWithinMap(tx, ty) || tz < -1 || tz > 9)
+					if (!MappedGame::isWithinMap(nTestX, nTestY) || nTestZ < -1 || nTestZ > 9)
 					{
 						hit = HitType::Void;		
 						dist_to_wall = m_render_dist;
 					}
 					else
 					{
-						int curr_cell_height = MappedGame::getHeight((int) tx, (int) ty);
+						int curr_cell_height = MappedGame::getHeight((int) nTestX, (int) nTestY);
 
-						if (tz <= curr_cell_height) 
+						if (nTestZ <= curr_cell_height) 
 						{
 							float bound = 0.1f;
-							float dz = curr_cell_height - tz;
+							float dz = curr_cell_height - nTestZ;
 
-							float dx = tx - (int)tx;
-							float dy = ty - (int)ty;
-							float d2x = tx - (int)(tx + 1);
-							float d2y = ty - (int)(ty + 1);
-							float d2z = tz - (int)tz;
-							float d3z = tz - (int)(tz + 1);
+							float dx = nTestX - (int)nTestX;
+							float dy = nTestY - (int)nTestY;
+							float d2x = nTestX - (int)(nTestX + 1);
+							float d2y = nTestY - (int)(nTestY + 1);
+							float d2z = nTestZ - (int)nTestZ;
+							float d3z = nTestZ - (int)(nTestZ + 1);
 							boundary = (inBounds(bound, dx) && inBounds(bound, dy))
 								|| (inBounds(bound, dx) && inBounds(bound, d2y))
 								|| (inBounds(bound, d2x) && inBounds(bound, dy))
 								|| (inBounds(bound, d2x) && inBounds(bound, d2y))
 								|| (inBounds(bound, d2z));
 
-							selected_boundary = selected && ((int) tx == selectedX && (int) ty == selectedY);
+							selected_boundary = selected && ((int)nTestX == selectedX && (int)nTestY == selectedY);
 
 							if (inBounds(bound, dz))
 							{
@@ -204,6 +204,7 @@ public:
 				short col = COLOR::BLACK;
 
 				dist_to_wall += dist(x, y, m_screen_width / 2.0f, m_screen_height / 2.0f) / 50.0f;
+
 				if (hit == HitType::Wall) {
 					if (boundary) {
 						if (selected_boundary) {

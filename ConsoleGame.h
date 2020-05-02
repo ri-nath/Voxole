@@ -42,17 +42,17 @@ class ConsoleGame
 private:
 	void updateFrame(float dt);
 
+	HANDLE m_buffer;
+	CHAR_INFO* m_screen;
+	SMALL_RECT m_rect_window;
+
 protected:
 	ConsoleGame(short screen_width, short screen_height);
 
 	void drawPixel(short x, short y, short c = 0x2588, short col = 0x00F);
-
-	HANDLE m_buffer;
-	CHAR_INFO *m_screen;
-	SMALL_RECT m_rect_window;
-
 	const short m_screen_width;
 	const short m_screen_height;
+
 public:
 	virtual void onTick(float dt) = 0;
 	void createWindow(int font_width, int font_height);

@@ -11,7 +11,7 @@ ConsoleGame::ConsoleGame(short screen_width, short screen_height)
 	: m_screen_width(screen_width), 
 	  m_screen_height(screen_height)
 {
-	m_screen = new CHAR_INFO[m_screen_width * m_screen_height];
+	m_screen = new CHAR_INFO[(int) m_screen_width * m_screen_height];
 	memset(m_screen, 0, sizeof(CHAR_INFO) * m_screen_width * m_screen_height);
 
 	m_buffer = CreateConsoleScreenBuffer(
@@ -47,16 +47,16 @@ void ConsoleGame::createWindow(int font_width, int font_height)
 	if (!SetConsoleActiveScreenBuffer(m_buffer))
 		throw std::runtime_error("Unable to set Console Screen Buffer as Active.");
 
-	CONSOLE_FONT_INFOEX cfi;
-	cfi.cbSize = sizeof(cfi);
-	cfi.nFont = 0;
-	cfi.dwFontSize.X = font_width;
-	cfi.dwFontSize.Y = font_height;
-	cfi.FontFamily = FF_DONTCARE;
-	cfi.FontWeight = FW_NORMAL;
+	CONSOLE_FONT_INFOEX font_info;
+	font_info.cbSize = sizeof(font_info);
+	font_info.nFont = 0;
+	font_info.dwFontSize.X = font_width;
+	font_info.dwFontSize.Y = font_height;
+	font_info.FontFamily = FF_DONTCARE;
+	font_info.FontWeight = FW_NORMAL;
 
-	wcscpy_s(cfi.FaceName, L"Consolas");
-	if (!SetCurrentConsoleFontEx(m_buffer, false, &cfi))
+	wcscpy_s(font_info.FaceName, L"Consolas");
+	if (!SetCurrentConsoleFontEx(m_buffer, false, &font_info))
 		throw std::runtime_error("Unable to set Console font.");
 
 	m_rect_window = { 0, 0, m_screen_width - 1, m_screen_height - 1 };
