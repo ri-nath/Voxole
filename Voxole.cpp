@@ -39,7 +39,7 @@ private:
 	float m_player_azumith = 0.0f;
 	
 	const float m_player_max_speed = 5.0f;
-	const float m_player_max_angular_speed = 3.5f;
+	const float m_player_max_angular_speed = 1.5f;
 
 	const float m_clickable_dist = 6.0f;
 

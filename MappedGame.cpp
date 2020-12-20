@@ -46,7 +46,7 @@ void MappedGame::onTick(float dt)
 		}
 	}
 
-	while (m_playerZ > getHeight(m_playerX, m_playerY))
+	while (m_playerZ < getHeight(m_playerX, m_playerY))
 	{
 		m_playerZ++;
 	}
